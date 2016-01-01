@@ -9,7 +9,7 @@
 #define SAMPLE_FREQUENCY MHZ(10)
 #define SAMPLE_INTERVAL_NS (1000000000UL/SAMPLE_FREQUENCY)
 
-#define CHANNELS 2
+#define CHANNELS 1
 
 void samples_ready(
     int16_t  handle,
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     if((status = ps3000aSetChannel(
         hscope,
         PS3000A_CHANNEL_B,
-        false,
+        CHANNELS>=2,
         PS3000A_DC,
         PS3000A_5V,
         0)) != PICO_OK)
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     }
 
     /* enable dual-buffering */
-    if((status = ps3000aMemorySegments(hscope, SAMPLE_SEGMENTS, &max_samples)) != PICO_OK)
+    if((status = ps3000aMemorySegments(hscope, CHANNELS, &max_samples)) != PICO_OK)
         printf("Failed to set memory segment count [0x%X]\n",(uint32_t)status);
     else
     {
@@ -77,13 +77,13 @@ int main(int argc, char *argv[])
 
         /* allocate buffer memories */
         buffer = (int16_t*)
-            malloc(max_samples * SAMPLE_SEGMENTS * sizeof(buffer[0]));
+            malloc(max_samples * CHANNELS * sizeof(buffer[0]));
         if(!buffer)
             printf("ERROR: failed to allocate memory!\n");
         else
         {
             /* assign driver buffers to buffer memories */
-            for(i=0; i<SAMPLE_SEGMENTS; i++)
+            for(i=0; i<CHANNELS; i++)
                 if((status = ps3000aSetDataBuffer(
                     hscope,
                     PS3000A_CHANNEL_A,
@@ -92,8 +92,8 @@ int main(int argc, char *argv[])
                     i,
                     PS3000A_RATIO_MODE_NONE)) != PICO_OK)
                     break;
-            if(i!=SAMPLE_SEGMENTS)
-                printf("ERROR: register block %i (0x%X)!\n", i, status);
+            if(i!=CHANNELS)
+                printf("ERROR: registering channel %i (0x%X)!\n", i+1, status);
             else
             {
                 /* run data aquisition */
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
                     buffer
                     ) == PICO_OK)
                {
-                    usleep(block_us/3);
+                    usleep(block_us/4);
                }
             }
         }
