@@ -6,8 +6,8 @@
 
 #define MHZ(x) ((x)*1000000UL)
 
-#define SAMPLE_FREQUENCY MHZ(10)
-#define SAMPLE_INTERVAL_NS (1000000000UL/SAMPLE_FREQUENCY)
+#define SAMPLE_FREQUENCY MHZ(62.5)
+#define SAMPLE_INTERVAL_NS (int)(((1000000000UL/SAMPLE_FREQUENCY)+0.5))
 
 #define CHANNELS 1
 
@@ -22,7 +22,8 @@ void samples_ready(
     void     *pParameter
 )
 {
-    printf("idx=%i samples=%i\n", startIndex, noOfSamples);
+    printf("idx=%08i overflow=%i samples=%08i\n",
+        startIndex, overflow, noOfSamples);
 }
 
 int main(int argc, char *argv[])
@@ -71,9 +72,7 @@ int main(int argc, char *argv[])
         printf("Failed to set memory segment count [0x%X]\n",(uint32_t)status);
     else
     {
-        block_us = (SAMPLE_INTERVAL_NS*max_samples)/1000; 
-        printf("allocating %i samples per buffer (%ims per block)...\n",
-            max_samples, block_us/1000);
+        printf("allocating %i samples for buffer...\n", max_samples);
 
         /* allocate buffer memories */
         buffer = (int16_t*)
@@ -111,6 +110,8 @@ int main(int argc, char *argv[])
                     printf("ERROR: failed to run streaming (0x%X)\n", status);
 
                 /* show actual sampling rate */
+                block_us = (sample_interval*max_samples)/1000;
+                printf("buffer covers %ims...\n", block_us/1000);
                 printf("sampling at freqency %.2fMHz (interval %i)...\n",
                     (1000.0f / sample_interval),
                     sample_interval
@@ -128,7 +129,6 @@ int main(int argc, char *argv[])
             }
         }
     }
-
 
     /* done */
     ps3000aCloseUnit(hscope);
