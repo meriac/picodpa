@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
         0)) != PICO_OK)
     {
         printf("failed to configure channel [0x%X]\n",(uint32_t)status);
-        return 1;
+        return 2;
     }
 
     /* disable channel B */
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
         0)) != PICO_OK)
     {
         printf("failed to configure channel [0x%x]\n",(uint32_t)status);
-        return 1;
+        return 3;
     }
 
     /* enable dual-buffering */
