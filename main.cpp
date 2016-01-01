@@ -2,13 +2,16 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <signal.h>
 #include <ps3000aApi.h>
 
-#define MHZ(x) ((x)*1000000UL)
+#define MHZ(x) ((x)*1000000.0)
 #define SAMPLE_FREQUENCY MHZ(62.5)
 #define SAMPLE_INTERVAL_PS (int)(((1000000000000.0/SAMPLE_FREQUENCY)+0.5))
 
 #define CHANNELS 1
+
+static volatile bool g_terminate;
 
 void samples_ready(
     int16_t  handle,
@@ -25,6 +28,10 @@ void samples_ready(
         startIndex, overflow, noOfSamples);
 }
 
+void shutdown_request(int sig){
+    g_terminate = true;
+}
+
 int main(int argc, char *argv[])
 {
     PICO_STATUS status;
@@ -32,6 +39,9 @@ int main(int argc, char *argv[])
     uint32_t sample_interval;
     int16_t hscope;
     int16_t *buffer;
+
+    /* hook termination handler */
+    signal(SIGINT, shutdown_request);
 
     /* open first available scope */
     if((status = ps3000aOpenUnit(&hscope, NULL)) != PICO_OK)
@@ -117,18 +127,23 @@ int main(int argc, char *argv[])
                 );
 
                 /* run data aquisition */
-               while(ps3000aGetStreamingLatestValues(
+                while(!g_terminate && ps3000aGetStreamingLatestValues(
                     hscope,
                     samples_ready,
                     buffer
                     ) == PICO_OK)
-               {
+                {
                     usleep(block_us/4);
-               }
+                }
+
+                /* stop data acquisition after control-c */
+                if((status = ps3000aStop(hscope)) != PICO_OK)
+                    printf("Failed to stop data acquisition (0x%08X)\n", status);
             }
         }
     }
 
+    printf("Terminated...\n");
     /* done */
     ps3000aCloseUnit(hscope);
     return 0;
