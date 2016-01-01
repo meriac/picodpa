@@ -5,9 +5,8 @@
 #include <ps3000aApi.h>
 
 #define MHZ(x) ((x)*1000000UL)
-
 #define SAMPLE_FREQUENCY MHZ(62.5)
-#define SAMPLE_INTERVAL_NS (int)(((1000000000UL/SAMPLE_FREQUENCY)+0.5))
+#define SAMPLE_INTERVAL_PS (int)(((1000000000000.0/SAMPLE_FREQUENCY)+0.5))
 
 #define CHANNELS 1
 
@@ -96,11 +95,11 @@ int main(int argc, char *argv[])
             else
             {
                 /* run data aquisition */
-                sample_interval = SAMPLE_INTERVAL_NS;
+                sample_interval = SAMPLE_INTERVAL_PS;
                 if((status = ps3000aRunStreaming(
                     hscope,
                     &sample_interval,
-                    PS3000A_NS,
+                    PS3000A_PS,
                     0,
                     max_samples,
                     false,
@@ -110,10 +109,10 @@ int main(int argc, char *argv[])
                     printf("ERROR: failed to run streaming (0x%X)\n", status);
 
                 /* show actual sampling rate */
-                block_us = (sample_interval*max_samples)/1000;
+                block_us = (((int64_t)sample_interval)*max_samples)/1000000;
                 printf("buffer covers %ims...\n", block_us/1000);
                 printf("sampling at freqency %.2fMHz (interval %i)...\n",
-                    (1000.0f / sample_interval),
+                    (1000000.0f / sample_interval),
                     sample_interval
                 );
 
