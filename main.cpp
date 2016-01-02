@@ -41,6 +41,7 @@ void samples_ready(
         else
         {
             progress -= FILTER_INTERVAL_NS;
+            fwrite(&g_oversampling, sizeof(g_oversampling), 1, stdout);
             g_oversampling = 0;
             g_buffer_count++;
         }
@@ -139,9 +140,14 @@ int main(int argc, char *argv[])
                 /* show actual sampling rate */
                 block_us = (g_sample_interval_ns*max_samples)/1000;
                 fprintf(stderr,"buffer covers %ims...\n", block_us/1000);
-                fprintf(stderr,"sampling at freqency %.2fMHz (interval %i)...\n",
+                fprintf(stderr,"sampling at freqency %.2fMHz (interval %ins)...\n",
                     (1000.0f / g_sample_interval_ns),
                     g_sample_interval_ns
+                );
+                fprintf(stderr,"filter frequency %.2fkHz (~%i samples per %ius interval)...\n",
+                    FILTER_FREQUENCY/1000.0,
+                    FILTER_INTERVAL_NS / g_sample_interval_ns,
+                    FILTER_INTERVAL_NS / 1000
                 );
 
                 /* run data aquisition */
