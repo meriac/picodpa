@@ -2,7 +2,7 @@ PREFIX=
 SCOPE:=ps3000a
 IPS_VER:=1.1
 SOURCES:=main.cpp
-TARGET_BIN:=sample
+TARGET_BIN:=picodpa
 OPT:=-O2
 
 #
