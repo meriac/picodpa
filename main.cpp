@@ -1,7 +1,9 @@
 /***************************************************************
  *
- * PicoDPA - command line DAQ tool for PicoScope 3204A
+ * PicoDPA - command line DAQ tool for PicoScope 3xxxA
  *
+ * Tested with PicoScope 3204A
+ * 
  * Copyright 2015 Milosch Meriac <milosch@meriac.com>
  *
  ***************************************************************/
